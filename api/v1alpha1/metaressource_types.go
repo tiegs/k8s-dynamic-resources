@@ -28,6 +28,11 @@ type MetaRessourceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
+	// Target resource
+	ApiVersion string `json:"apiVersion"`
+	Kind       string `json:"kind"`
+	Name       string `json:"name"`
+
 	// Foo is an example field of MetaRessource. Edit metaressource_types.go to remove/update
 	Foo string `json:"foo,omitempty"`
 }

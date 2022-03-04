@@ -3,4 +3,6 @@ kind: MetaRessource
 metadata:
   name: metaressource-sample
 spec:
-  # TODO(user): Add fields here
+  apiVersion: ""
+  kind: Secret
+  name: generated-secret

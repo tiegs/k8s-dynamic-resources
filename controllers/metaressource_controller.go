@@ -18,12 +18,12 @@ package controllers
 
 import (
 	"context"
-
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
 	metakubev1alpha1 "tilmaneggers.de/k8s-meta-ressource-manager/api/v1alpha1"
 )
 
@@ -47,9 +47,54 @@ type MetaRessourceReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *MetaRessourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
 
 	// TODO(user): your logic here
+	log.Info("Reconciling...")
+
+	//foundSecret := &corev1.Secret{}
+	//err := r.Get(ctx, req.NamespacedName, foundSecret)
+	//if err != nil {
+	//	// If a configMap name is provided, then it must exist
+	//	// You will likely want to create an Event for the user to understand why their reconcile is failing.
+	//	return ctrl.Result{}, err
+	//}
+
+	//// https://itnext.io/generically-working-with-kubernetes-resources-in-go-53bce678f887
+	//resourceId := schema.GroupVersionResource{
+	//	Group:    group,
+	//	Version:  version,
+	//	Resource: resource,
+	//}
+	//
+	//dynamic.
+	//
+	//list, err := dynamic.Resource(resourceId).Namespace(namespace).
+	//	List(ctx, metav1.ListOptions{})
+	//
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	// https://stackoverflow.com/questions/61200605/generic-client-get-for-custom-kubernetes-go-operator
+	u := &unstructured.Unstructured{}
+
+	u.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "",
+		Version: "v1",
+		Kind:    "Secret",
+	})
+
+	err := r.Get(ctx, client.ObjectKey{
+		Namespace: "default",
+		Name:      "dummy-secret",
+	}, u)
+
+	if err != nil {
+		return ctrl.Result{}, err
+	} else {
+		log.Info("Object identified")
+	}
 
 	return ctrl.Result{}, nil
 }

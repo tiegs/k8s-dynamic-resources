@@ -1,4 +1,4 @@
-apiVersion: meta.kube.my.domain/v1alpha1
+apiVersion: meta.kube/v1alpha1
 kind: MetaRessource
 metadata:
   name: metaressource-sample

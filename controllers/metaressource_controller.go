@@ -33,9 +33,9 @@ type MetaRessourceReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=meta.kube.my.domain,resources=metaressources,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=meta.kube.my.domain,resources=metaressources/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=meta.kube.my.domain,resources=metaressources/finalizers,verbs=update
+//+kubebuilder:rbac:groups=meta.kube,resources=metaressources,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=meta.kube,resources=metaressources/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=meta.kube,resources=metaressources/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

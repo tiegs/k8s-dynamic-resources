@@ -1,8 +1,9 @@
-# permissions for end users to edit metaressources.
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: metaressource-editor-role
+  creationTimestamp: null
+  name: manager-role
 rules:
 - apiGroups:
   - meta.kube
@@ -19,6 +20,14 @@ rules:
 - apiGroups:
   - meta.kube
   resources:
+  - metaressources/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - meta.kube
+  resources:
   - metaressources/status
   verbs:
   - get
+  - patch
+  - update

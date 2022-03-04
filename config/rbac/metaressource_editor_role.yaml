@@ -1,0 +1,24 @@
+# permissions for end users to edit metaressources.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metaressource-editor-role
+rules:
+- apiGroups:
+  - my.domain
+  resources:
+  - metaressources
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - my.domain
+  resources:
+  - metaressources/status
+  verbs:
+  - get

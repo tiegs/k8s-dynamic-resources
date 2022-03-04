@@ -1,0 +1,15 @@
+domain: my.domain
+layout:
+- go.kubebuilder.io/v3
+projectName: k8s-meta-ressource-manager
+repo: tilmaneggers.de/k8s-meta-ressource-manager
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: my.domain
+  kind: MetaRessource
+  path: tilmaneggers.de/k8s-meta-ressource-manager/api/v1alpha1
+  version: v1alpha1
+version: "3"

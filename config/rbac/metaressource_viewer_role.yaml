@@ -1,0 +1,20 @@
+# permissions for end users to view metaressources.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metaressource-viewer-role
+rules:
+- apiGroups:
+  - my.domain
+  resources:
+  - metaressources
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - my.domain
+  resources:
+  - metaressources/status
+  verbs:
+  - get

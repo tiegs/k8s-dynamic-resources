@@ -9,6 +9,7 @@ resources:
     namespaced: true
   controller: true
   domain: my.domain
+  group: meta.kube
   kind: MetaRessource
   path: tilmaneggers.de/k8s-meta-ressource-manager/api/v1alpha1
   version: v1alpha1

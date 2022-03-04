@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	mydomainv1alpha1 "tilmaneggers.de/k8s-meta-ressource-manager/api/v1alpha1"
+	metakubev1alpha1 "tilmaneggers.de/k8s-meta-ressource-manager/api/v1alpha1"
 )
 
 // MetaRessourceReconciler reconciles a MetaRessource object
@@ -33,9 +33,9 @@ type MetaRessourceReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=my.domain,resources=metaressources,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=my.domain,resources=metaressources/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=my.domain,resources=metaressources/finalizers,verbs=update
+//+kubebuilder:rbac:groups=meta.kube.my.domain,resources=metaressources,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=meta.kube.my.domain,resources=metaressources/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=meta.kube.my.domain,resources=metaressources/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -57,6 +57,6 @@ func (r *MetaRessourceReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 // SetupWithManager sets up the controller with the Manager.
 func (r *MetaRessourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&mydomainv1alpha1.MetaRessource{}).
+		For(&metakubev1alpha1.MetaRessource{}).
 		Complete(r)
 }

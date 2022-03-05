@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -28,13 +29,21 @@ type MetaRessourceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Target resource
-	ApiVersion string `json:"apiVersion"`
-	Kind       string `json:"kind"`
-	Name       string `json:"name"`
+	// Fields
+	// -* from:
+	// -- -- apiVersion
+	// -- -- kind
+	// -- -- name (Todo: Alternative label/annotation matchers?)
+	// -- -- fieldspec (path to field)
+	// -- to:
+	// -- -- fieldspec (path to field)
 
-	// Foo is an example field of MetaRessource. Edit metaressource_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Target resource definition
+	// +kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Required
+	Target unstructured.Unstructured `json:"target"`
+	//Target []unstructured.Unstructured `json:"target"`
 }
 
 // MetaRessourceStatus defines the observed state of MetaRessource

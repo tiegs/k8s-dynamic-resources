@@ -21,7 +21,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
@@ -94,14 +93,20 @@ func (r *MetaRessourceReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// Create arbitrary object
 	u := &unstructured.Unstructured{}
 
-	u.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   "",
-		Version: "v1",
-		Kind:    "Secret",
-	})
+	//u.SetGroupVersionKind(schema.GroupVersionKind{
+	//	Group:   "",
+	//	Version: "v1",
+	//	Kind:    "Secret",
+	//})
 
-	//u.SetNamespace("default")
-	u.SetName("asdf-test-secret")
+	//u.SetAPIVersion(metaRessource.Spec.Target.GetAPIVersion())
+	//u.SetNamespace(metaRessource.GetNamespace())
+
+	u.SetUnstructuredContent(metaRessource.Spec.Target.Object)
+	//u.Set
+	//
+	////u.SetNamespace("default")
+	//u.SetName("asdf-test-secret")
 
 	gvk, err := apiutil.GVKForObject(&metaRessource, r.Scheme)
 	if err != nil {

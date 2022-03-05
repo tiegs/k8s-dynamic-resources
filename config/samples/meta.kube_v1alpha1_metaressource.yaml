@@ -3,6 +3,9 @@ kind: MetaRessource
 metadata:
   name: metaressource-sample
 spec:
-  apiVersion: ""
-  kind: Secret
-  name: generated-secret
+  target:
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: generated-secret
+      namespace: default

@@ -35,21 +35,13 @@ spec:
           spec:
             description: MetaRessourceSpec defines the desired state of MetaRessource
             properties:
-              apiVersion:
-                description: Target resource
-                type: string
-              foo:
-                description: Foo is an example field of MetaRessource. Edit metaressource_types.go
-                  to remove/update
-                type: string
-              kind:
-                type: string
-              name:
-                type: string
+              target:
+                description: Target resource definition
+                type: object
+                x-kubernetes-embedded-resource: true
+                x-kubernetes-preserve-unknown-fields: true
             required:
-            - apiVersion
-            - kind
-            - name
+            - target
             type: object
           status:
             description: MetaRessourceStatus defines the observed state of MetaRessource

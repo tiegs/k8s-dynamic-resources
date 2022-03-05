@@ -43,13 +43,35 @@ type MetaRessourceSpec struct {
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +kubebuilder:validation:Required
 	Target unstructured.Unstructured `json:"target"`
-	//Target []unstructured.Unstructured `json:"target"`
+
+	Transformations []MetaRessourceTransformation `json:"transformations"`
+}
+
+type MetaRessourceTransformation struct {
+	FieldFrom ExternalFieldRef `json:"fieldFrom"`
+
+	TargetField string `json:"targetField"`
+}
+
+// ExternalFieldRef Reference to a field of any resource on the cluster
+type ExternalFieldRef struct {
+	metav1.TypeMeta `json:",inline"`
+	Name            string `json:"name"`
+
+	//metav1.LabelSelector `json:"labelSelector"`
+
+	// Selector for the field to copy the data from
+	FieldSpec string `json:"fieldSpec"`
 }
 
 // MetaRessourceStatus defines the observed state of MetaRessource
 type MetaRessourceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	Ready    bool   `json:"ready"`
+	Reason   string `json:"reason"`
+	Resource string `json:"resource"`
 }
 
 //+kubebuilder:object:root=true
@@ -65,6 +87,8 @@ type MetaRessource struct {
 }
 
 //+kubebuilder:object:root=true
+// +kubebuilder:printcolumn:name="Created",type=string,JSONPath=`.status.ready`
+// +kubebuilder:printcolumn:name="Created",type=string,JSONPath=`.status.resource`
 
 // MetaRessourceList contains a list of MetaRessource
 type MetaRessourceList struct {

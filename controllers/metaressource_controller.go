@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,6 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"strings"
 	metakubev1alpha1 "tilmaneggers.de/k8s-meta-ressource-manager/api/v1alpha1"
 	"time"
 )
@@ -51,7 +54,6 @@ type MetaRessourceReconciler struct {
 func (r *MetaRessourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	// TODO(user): your logic here
 	log.Info("Reconciling...")
 
 	// Retrieve MetaRessource
@@ -64,63 +66,63 @@ func (r *MetaRessourceReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Retrieve ressources managed by
+	// Todo: Retrieve resources managed by this metaressource or create new
+	u := &unstructured.Unstructured{}
 
 	// https://stackoverflow.com/questions/61200605/generic-client-get-for-custom-kubernetes-go-operator
 
-	// Get arbitrary object
-	//u := &unstructured.Unstructured{}
-	//
-	//u.SetGroupVersionKind(schema.GroupVersionKind{
-	//	Group:   "",
-	//	Version: "v1",
-	//	Kind:    "Secret",
-	//})
-	//
-	//err := r.Get(ctx, client.ObjectKey{
-	//	Namespace: "default",
-	//	Name:      "dummy-secret",
-	//}, u)
-	//
-	//if err != nil {
-	//	return ctrl.Result{}, err
-	//} else {
-	//	log.Info("Object identified")
-	//}
-	//
-	//return ctrl.Result{}, nil
-
-	// Create arbitrary object
-	u := &unstructured.Unstructured{}
-
-	//u.SetGroupVersionKind(schema.GroupVersionKind{
-	//	Group:   "",
-	//	Version: "v1",
-	//	Kind:    "Secret",
-	//})
-
-	//u.SetAPIVersion(metaRessource.Spec.Target.GetAPIVersion())
-	//u.SetNamespace(metaRessource.GetNamespace())
-
+	// Prepare Target object
 	u.SetUnstructuredContent(metaRessource.Spec.Target.Object)
-	//u.Set
-	//
-	////u.SetNamespace("default")
-	//u.SetName("asdf-test-secret")
 
+	// Defined owner reference
 	gvk, err := apiutil.GVKForObject(&metaRessource, r.Scheme)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	ref := *metav1.NewControllerRef(&metaRessource, gvk)
-
 	refs := u.GetOwnerReferences()
 	refs = append(refs, ref)
 
 	u.SetOwnerReferences(append(u.GetOwnerReferences(), ref))
 
-	//u.SetUnstructuredContent(map[string] string {"France":"Paris","Italy":"Rome","Japan":"Tokyo","India":"New Delhi"})
+	// Resolve Transformations
+	for _, trans := range metaRessource.Spec.Transformations {
+
+		// Handle fieldFrom transfomation
+		src := &unstructured.Unstructured{}
+
+		src.SetAPIVersion(trans.FieldFrom.APIVersion)
+		src.SetKind(trans.FieldFrom.Kind)
+
+		// Todo: More elaborate matchers
+		key := client.ObjectKey{Namespace: metaRessource.Namespace, Name: trans.FieldFrom.Name}
+
+		err := r.Get(ctx, key, src)
+		if err != nil {
+			log.Error(err, "Failed to retrieve fieldFrom source object")
+			return ctrl.Result{}, err
+		}
+
+		// https://iximiuz.com/en/posts/kubernetes-api-go-types-and-common-machinery/
+
+		// Split FieldSpec and retrieve its string value
+		spec := strings.Split(trans.FieldFrom.FieldSpec, ".")
+		data, found, err := unstructured.NestedString(src.UnstructuredContent(), spec...)
+		if err != nil {
+			log.Error(err, fmt.Sprintf("Failed to retrieve field '%s' source object", trans.TargetField))
+			return ctrl.Result{}, err
+		} else if !found {
+			return ctrl.Result{}, errors.New(fmt.Sprintf("Field '%s' not found on source object", trans.TargetField))
+		}
+
+		// Inject into target field
+		spec = strings.Split(trans.TargetField, ".")
+		err = unstructured.SetNestedField(u.Object, data, spec...)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 
 	err = r.Create(ctx, u)
 

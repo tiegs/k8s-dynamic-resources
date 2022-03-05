@@ -1,0 +1,19 @@
+apiVersion: meta.kube/v1alpha1
+kind: MetaRessource
+metadata:
+  name: metaressource-sample
+spec:
+  transformations:
+    - fieldFrom:
+        apiVersion: v1
+        kind: Secret
+        name: dummy-secret
+        fieldSpec: data.foo
+      targetField: data.foo
+
+  target:
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: generated-secret
+      namespace: default

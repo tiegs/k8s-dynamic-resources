@@ -18,13 +18,16 @@ package controllers
 
 import (
 	"context"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	metakubev1alpha1 "tilmaneggers.de/k8s-meta-ressource-manager/api/v1alpha1"
+	"time"
 )
 
 // MetaRessourceReconciler reconciles a MetaRessource object
@@ -52,31 +55,43 @@ func (r *MetaRessourceReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// TODO(user): your logic here
 	log.Info("Reconciling...")
 
-	//foundSecret := &corev1.Secret{}
-	//err := r.Get(ctx, req.NamespacedName, foundSecret)
-	//if err != nil {
-	//	// If a configMap name is provided, then it must exist
-	//	// You will likely want to create an Event for the user to understand why their reconcile is failing.
-	//	return ctrl.Result{}, err
-	//}
+	// Retrieve MetaRessource
+	var metaRessource metakubev1alpha1.MetaRessource
+	if err := r.Get(ctx, req.NamespacedName, &metaRessource); err != nil {
+		log.Error(err, "unable to fetch MetaRessource")
+		// we'll ignore not-found errors, since they can't be fixed by an immediate
+		// requeue (we'll need to wait for a new notification), and we can get them
+		// on deleted requests.
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
-	//// https://itnext.io/generically-working-with-kubernetes-resources-in-go-53bce678f887
-	//resourceId := schema.GroupVersionResource{
-	//	Group:    group,
-	//	Version:  version,
-	//	Resource: resource,
-	//}
-	//
-	//dynamic.
-	//
-	//list, err := dynamic.Resource(resourceId).Namespace(namespace).
-	//	List(ctx, metav1.ListOptions{})
-	//
-	//if err != nil {
-	//	return nil, err
-	//}
+	// Retrieve ressources managed by
 
 	// https://stackoverflow.com/questions/61200605/generic-client-get-for-custom-kubernetes-go-operator
+
+	// Get arbitrary object
+	//u := &unstructured.Unstructured{}
+	//
+	//u.SetGroupVersionKind(schema.GroupVersionKind{
+	//	Group:   "",
+	//	Version: "v1",
+	//	Kind:    "Secret",
+	//})
+	//
+	//err := r.Get(ctx, client.ObjectKey{
+	//	Namespace: "default",
+	//	Name:      "dummy-secret",
+	//}, u)
+	//
+	//if err != nil {
+	//	return ctrl.Result{}, err
+	//} else {
+	//	log.Info("Object identified")
+	//}
+	//
+	//return ctrl.Result{}, nil
+
+	// Create arbitrary object
 	u := &unstructured.Unstructured{}
 
 	u.SetGroupVersionKind(schema.GroupVersionKind{
@@ -85,15 +100,34 @@ func (r *MetaRessourceReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		Kind:    "Secret",
 	})
 
-	err := r.Get(ctx, client.ObjectKey{
-		Namespace: "default",
-		Name:      "dummy-secret",
-	}, u)
+	//u.SetNamespace("default")
+	u.SetName("asdf-test-secret")
 
+	gvk, err := apiutil.GVKForObject(&metaRessource, r.Scheme)
 	if err != nil {
 		return ctrl.Result{}, err
+	}
+
+	ref := *metav1.NewControllerRef(&metaRessource, gvk)
+
+	refs := u.GetOwnerReferences()
+	refs = append(refs, ref)
+
+	u.SetOwnerReferences(append(u.GetOwnerReferences(), ref))
+
+	//u.SetUnstructuredContent(map[string] string {"France":"Paris","Italy":"Rome","Japan":"Tokyo","India":"New Delhi"})
+
+	err = r.Create(ctx, u)
+
+	//err := r.Get(ctx, client.ObjectKey{
+	//	Namespace: "default",
+	//	Name:      "dummy-secret",
+	//}, u)
+
+	if err != nil {
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
 	} else {
-		log.Info("Object identified")
+		log.Info("Object created!")
 	}
 
 	return ctrl.Result{}, nil

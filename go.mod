@@ -1,4 +1,4 @@
-module tilmaneggers.de/k8s-meta-ressource-manager
+module github.com/tiegs/k8s-dynamic-resources
 
 go 1.17
 

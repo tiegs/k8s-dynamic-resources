@@ -1,5 +1,5 @@
-apiVersion: meta.kube/v1alpha1
-kind: MetaRessource
+apiVersion: dynamic.kube/v1alpha1
+kind: DynamicResource
 metadata:
   name: metaressource-sample
 spec:
@@ -9,7 +9,7 @@ spec:
         kind: Secret
         name: dummy-secret
         fieldSpec: data.foo
-      targetField: data.foo
+      targetField: data.baz
 
   target:
     apiVersion: v1

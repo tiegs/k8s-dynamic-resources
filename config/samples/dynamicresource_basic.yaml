@@ -1,7 +1,7 @@
-apiVersion: meta.kube/v1alpha1
-kind: MetaRessource
+apiVersion: dynamic.kube/v1alpha1
+kind: DynamicResource
 metadata:
-  name: metaressource-sample
+  name: dynamicresource-sample
 spec:
   target:
     apiVersion: v1

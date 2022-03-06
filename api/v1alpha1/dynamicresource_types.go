@@ -24,19 +24,10 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// MetaRessourceSpec defines the desired state of MetaRessource
-type MetaRessourceSpec struct {
+// DynamicResourceSpec defines the desired state of DynamicResource
+type DynamicResourceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
-	// Fields
-	// -* from:
-	// -- -- apiVersion
-	// -- -- kind
-	// -- -- name (Todo: Alternative label/annotation matchers?)
-	// -- -- fieldspec (path to field)
-	// -- to:
-	// -- -- fieldspec (path to field)
 
 	// Target resource definition
 	// +kubebuilder:validation:EmbeddedResource
@@ -44,10 +35,10 @@ type MetaRessourceSpec struct {
 	// +kubebuilder:validation:Required
 	Target unstructured.Unstructured `json:"target"`
 
-	Transformations []MetaRessourceTransformation `json:"transformations"`
+	Transformations []DynamicResourceTransformation `json:"transformations"`
 }
 
-type MetaRessourceTransformation struct {
+type DynamicResourceTransformation struct {
 	FieldFrom ExternalFieldRef `json:"fieldFrom"`
 
 	TargetField string `json:"targetField"`
@@ -56,47 +47,43 @@ type MetaRessourceTransformation struct {
 // ExternalFieldRef Reference to a field of any resource on the cluster
 type ExternalFieldRef struct {
 	metav1.TypeMeta `json:",inline"`
-	Name            string `json:"name"`
 
-	//metav1.LabelSelector `json:"labelSelector"`
+	// Todo: Add more advanced resource matchers, e.g. label- and field-based matching
+	// Name of the target resource
+	Name string `json:"name"`
 
+	// Todo: Add more advanced field matchers
 	// Selector for the field to copy the data from
 	FieldSpec string `json:"fieldSpec"`
 }
 
-// MetaRessourceStatus defines the observed state of MetaRessource
-type MetaRessourceStatus struct {
+// DynamicResourceStatus defines the observed state of DynamicResource
+type DynamicResourceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
-	Ready    bool   `json:"ready"`
-	Reason   string `json:"reason"`
-	Resource string `json:"resource"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// MetaRessource is the Schema for the metaressources API
-type MetaRessource struct {
+// DynamicResource is the Schema for the dynamicresources API
+type DynamicResource struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   MetaRessourceSpec   `json:"spec,omitempty"`
-	Status MetaRessourceStatus `json:"status,omitempty"`
+	Spec   DynamicResourceSpec   `json:"spec,omitempty"`
+	Status DynamicResourceStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
-// +kubebuilder:printcolumn:name="Created",type=string,JSONPath=`.status.ready`
-// +kubebuilder:printcolumn:name="Created",type=string,JSONPath=`.status.resource`
 
-// MetaRessourceList contains a list of MetaRessource
-type MetaRessourceList struct {
+// DynamicResourceList contains a list of DynamicResource
+type DynamicResourceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []MetaRessource `json:"items"`
+	Items           []DynamicResource `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&MetaRessource{}, &MetaRessourceList{})
+	SchemeBuilder.Register(&DynamicResource{}, &DynamicResourceList{})
 }

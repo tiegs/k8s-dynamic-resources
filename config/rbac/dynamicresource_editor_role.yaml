@@ -1,13 +1,13 @@
-# permissions for end users to edit metaressources.
+# permissions for end users to edit dynamicresources.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: metaressource-editor-role
+  name: dynamicresource-editor-role
 rules:
 - apiGroups:
-  - meta.kube
+  - dynamic.kube
   resources:
-  - metaressources
+  - dynamicresources
   verbs:
   - create
   - delete
@@ -17,8 +17,8 @@ rules:
   - update
   - watch
 - apiGroups:
-  - meta.kube
+  - dynamic.kube
   resources:
-  - metaressources/status
+  - dynamicresources/status
   verbs:
   - get

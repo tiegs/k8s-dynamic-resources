@@ -1,14 +1,14 @@
 layout:
 - go.kubebuilder.io/v3
-projectName: k8s-meta-ressource-manager
-repo: tilmaneggers.de/k8s-meta-ressource-manager
+projectName: k8s-dynamic-resources
+repo: github.com/tiegs/k8s-dynamic-resources
 resources:
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  group: meta.kube
-  kind: MetaRessource
-  path: tilmaneggers.de/k8s-meta-ressource-manager/api/v1alpha1
+  group: dynamic.kube
+  kind: DynamicResource
+  path: github.com/tiegs/k8s-dynamic-resources/api/v1alpha1
   version: v1alpha1
 version: "3"

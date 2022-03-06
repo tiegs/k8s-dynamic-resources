@@ -9,7 +9,7 @@ spec:
         kind: Secret
         name: dummy-secret
         fieldSpec: data.foo
-      targetField: data.baz
+      targetField: data.generated
 
   target:
     apiVersion: v1

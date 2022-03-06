@@ -127,20 +127,30 @@ func (r *DynamicResourceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		}
 	}
 
-	err = r.Create(ctx, u)
+	//// Try to retrieve target object
+	//err = r.Get(ctx, client.ObjectKeyFromObject(u), u)
+	//if err != nil {
+	//	logger.Info("Creating target object", u)
+	//	err = r.Create(ctx, u)
+	//	if err != nil {
+	//		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
+	//	}
+	//} else {
+	//	logger.Info("Updating existing target object", u)
+	//	err = r.Update(ctx, u)
+	//	if err != nil {
+	//		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
+	//	}
+	//}
 
-	//err := r.Get(ctx, client.ObjectKey{
-	//	Namespace: "default",
-	//	Name:      "dummy-secret",
-	//}, u)
-
+	err = r.Update(ctx, u)
 	if err != nil {
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
 	}
 
-	logger.Info("Object created!")
+	logger.Info("Dynamic resource reconciled!", "resource", client.ObjectKeyFromObject(u))
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

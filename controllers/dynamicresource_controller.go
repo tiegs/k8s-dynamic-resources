@@ -17,13 +17,13 @@ limitations under the License.
 package controllers
 
 import (
+	"bytes"
 	"context"
-	"errors"
-	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"strings"
+	"text/template"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -58,7 +58,7 @@ func (r *DynamicResourceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	logger.Info("Reconciling...")
 
-	// Retrieve MetaRessource
+	// Retrieve DynamicResource
 	var dynamicResource dynamickubev1alpha1.DynamicResource
 	if err := r.Get(ctx, req.NamespacedName, &dynamicResource); err != nil {
 		//logger.Error(err, "unable to fetch MetaRessource")
@@ -69,7 +69,6 @@ func (r *DynamicResourceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Todo: Retrieve resources managed by this metaressource or create new
 	u := &unstructured.Unstructured{}
 
 	// https://stackoverflow.com/questions/61200605/generic-client-get-for-custom-kubernetes-go-operator
@@ -109,39 +108,30 @@ func (r *DynamicResourceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 		// https://iximiuz.com/en/posts/kubernetes-api-go-types-and-common-machinery/
 
-		// Split FieldSpec and retrieve its string value
-		spec := strings.Split(trans.FieldFrom.FieldSpec, ".")
-		data, found, err := unstructured.NestedString(src.UnstructuredContent(), spec...)
+		// Resolve FieldSpec using https://pkg.go.dev/text/template
+		buf := &bytes.Buffer{}
+		tpl, err := template.New("").Parse(trans.FieldFrom.FieldSpec)
 		if err != nil {
-			//logger.Error(err, fmt.Sprintf("Failed to retrieve field '%s' source object", trans.TargetField))
+			//logger.Error(err, "Invalid FieldSpec (needs to be a valid go-template)")
 			return ctrl.Result{}, err
-		} else if !found {
-			return ctrl.Result{}, errors.New(fmt.Sprintf("Field '%s' not found on source object", trans.TargetField))
 		}
 
+		err = tpl.Execute(buf, src.Object)
+		if err != nil {
+			//logger.Error(err, fmt.Sprintf("Failed to execute FieldSpec, trans.FieldFrom.FieldSpec)
+			return ctrl.Result{}, err
+		}
+
+		//logger.Info(fmt.Sprintf("Templated data from FieldSpec: %s", buf.String()))
+		data := buf.String()
+
 		// Inject into target field
-		spec = strings.Split(trans.TargetField, ".")
+		spec := strings.Split(trans.TargetField, ".")
 		err = unstructured.SetNestedField(u.Object, data, spec...)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
 	}
-
-	//// Try to retrieve target object
-	//err = r.Get(ctx, client.ObjectKeyFromObject(u), u)
-	//if err != nil {
-	//	logger.Info("Creating target object", u)
-	//	err = r.Create(ctx, u)
-	//	if err != nil {
-	//		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
-	//	}
-	//} else {
-	//	logger.Info("Updating existing target object", u)
-	//	err = r.Update(ctx, u)
-	//	if err != nil {
-	//		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
-	//	}
-	//}
 
 	err = r.Update(ctx, u)
 	if err != nil {

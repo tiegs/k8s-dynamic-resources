@@ -42,6 +42,9 @@ type DynamicResourceSpec struct {
 type DynamicResourceTransformation struct {
 	FieldFrom ExternalFieldRef `json:"fieldFrom"`
 
+	// TargetField is the field where the value shall be injected
+	// Todo: Add more advanced field matchers (that accept e.g. arrays, etc)
+	// dot-delimited
 	TargetField string `json:"targetField"`
 }
 
@@ -53,8 +56,8 @@ type ExternalFieldRef struct {
 	// Name of the target resource
 	Name string `json:"name"`
 
-	// Todo: Add more advanced field matchers
 	// Selector for the field to copy the data from
+	// go-template, using source object as root
 	FieldSpec string `json:"fieldSpec"`
 }
 

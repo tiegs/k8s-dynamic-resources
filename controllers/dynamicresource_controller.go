@@ -136,9 +136,9 @@ func (r *DynamicResourceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	if err != nil {
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
-	} else {
-		//logger.Info("Object created!")
 	}
+
+	logger.Info("Object created!")
 
 	return ctrl.Result{}, nil
 }

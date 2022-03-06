@@ -35,6 +35,7 @@ type DynamicResourceSpec struct {
 	// +kubebuilder:validation:Required
 	Target unstructured.Unstructured `json:"target"`
 
+	// +kubebuilder:validation:Optional
 	Transformations []DynamicResourceTransformation `json:"transformations"`
 }
 

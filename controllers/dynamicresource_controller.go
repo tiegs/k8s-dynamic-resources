@@ -19,17 +19,21 @@ package controllers
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/client-go/util/jsonpath"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"strings"
-	"text/template"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"k8s.io/kubectl/pkg/cmd/get"
 
 	dynamickubev1alpha1 "github.com/tiegs/k8s-dynamic-resources/api/v1alpha1"
 )
@@ -46,10 +50,6 @@ type DynamicResourceReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the DynamicResource object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
@@ -108,22 +108,41 @@ func (r *DynamicResourceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 		// https://iximiuz.com/en/posts/kubernetes-api-go-types-and-common-machinery/
 
-		// Resolve FieldSpec using https://pkg.go.dev/text/template
-		buf := &bytes.Buffer{}
-		tpl, err := template.New("").Parse(trans.FieldFrom.FieldSpec)
+		// Parse jsonpath
+		// https://kubernetes.io/docs/reference/kubectl/jsonpath/
+		fields, err := get.RelaxedJSONPathExpression(trans.FieldFrom.FieldSpec)
 		if err != nil {
-			//logger.Error(err, "Invalid FieldSpec (needs to be a valid go-template)")
-			return ctrl.Result{}, err
+			return ctrl.Result{}, errors.WithMessage(err, "Invalid FieldSpec (needs to be a valid jsonpath)")
 		}
 
-		err = tpl.Execute(buf, src.Object)
+		j := jsonpath.New("")
+		err = j.Parse(fields)
 		if err != nil {
-			//logger.Error(err, fmt.Sprintf("Failed to execute FieldSpec, trans.FieldFrom.FieldSpec)
-			return ctrl.Result{}, err
+			return ctrl.Result{}, errors.WithMessage(err, "Failed to parse FieldSpec (needs to be a valid jsonpath)")
 		}
 
-		//logger.Info(fmt.Sprintf("Templated data from FieldSpec: %s", buf.String()))
-		data := buf.String()
+		values, err := j.FindResults(src.Object)
+		if err != nil {
+			return ctrl.Result{}, errors.WithMessage(err, "Failed to execute FieldSpec")
+
+		}
+
+		// Allow only single-result jsonpaths
+		var data string
+
+		if len(values) == 0 {
+			return ctrl.Result{}, errors.New(fmt.Sprintf("JSONPath '%s' did not yield any result", trans.FieldFrom.FieldSpec))
+		} else if len(values) > 1 {
+			return ctrl.Result{}, errors.New(fmt.Sprintf("JSONPath '%s' yield '%d' result", trans.FieldFrom.FieldSpec, len(values)))
+		} else {
+			buf := &bytes.Buffer{}
+			err = j.PrintResults(buf, values[0])
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+
+			data = buf.String()
+		}
 
 		// Inject into target field
 		spec := strings.Split(trans.TargetField, ".")

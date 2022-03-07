@@ -56,8 +56,8 @@ type ExternalFieldRef struct {
 	// Name of the target resource
 	Name string `json:"name"`
 
-	// Selector for the field to copy the data from
-	// go-template, using source object as root
+	// FieldSpec JSONPath selector for the field to copy the data from
+	// docs: https://kubernetes.io/docs/reference/kubectl/jsonpath/
 	FieldSpec string `json:"fieldSpec"`
 }
 

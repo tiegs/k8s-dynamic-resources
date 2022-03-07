@@ -54,8 +54,8 @@ spec:
                             reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
                           type: string
                         fieldSpec:
-                          description: Selector for the field to copy the data from
-                            go-template, using source object as root
+                          description: 'FieldSpec JSONPath selector for the field
+                            to copy the data from docs: https://kubernetes.io/docs/reference/kubectl/jsonpath/'
                           type: string
                         kind:
                           description: 'Kind is a string value representing the REST
@@ -74,8 +74,8 @@ spec:
                       type: object
                     targetField:
                       description: 'TargetField is the field where the value shall
-                        be injected Todo: Add more advanced spec (that accepts e.g.
-                        arrays, etc) dot-delimited'
+                        be injected Todo: Add more advanced field matchers (that accept
+                        e.g. arrays, etc) dot-delimited'
                       type: string
                   required:
                   - fieldFrom
